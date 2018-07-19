@@ -1,0 +1,48 @@
+image: node:8-alpine
+
+before_script:
+  - npm install
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+build:
+  stage: build
+  script:
+    - npm run build
+
+lint:
+  stage: test
+  script:
+    - npm run lint
+  only:
+    - branches
+
+unit:
+  stage: test
+  script:
+    - npm run test:unit
+  only:
+    - branches
+
+e2e:
+  image: cypress/base:8
+  stage: test
+  dependencies:
+    - build
+  script:
+    - npm run test:e2e:headless
+  only:
+    - branches
+  artifacts:
+    paths:
+    - tests/e2e/screenshots
+    - tests/e2e/videos
+    expire_in: 1 week
+    when: always
+
+stages:
+   - build
+   - test
